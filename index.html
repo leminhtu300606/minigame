@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nhóm 7 TA3 — Game Trắc Nghiệm</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg:#0f1226; --bg2:#171b38; --card:#1e244d; --card2:#262d63;
+    --accent:#ffd23f; --accent2:#ff5a5f; --green:#22c55e; --blue:#3b82f6;
+    --text:#f1f5f9; --muted:#9aa3c7;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Segoe UI',system-ui,Arial,sans-serif;background:radial-gradient(1200px 600px at 20% -10%,#2b3480 0%,transparent 60%),radial-gradient(1000px 500px at 90% 10%,#5b21b6 0%,transparent 55%),var(--bg);color:var(--text);min-height:100vh}
+  header{position:sticky;top:0;z-index:20;background:rgba(15,18,38,.9);backdrop-filter:blur(10px);border-bottom:1px solid #2d356b;padding:12px 18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  header h1{font-size:20px;margin:0;letter-spacing:.3px}
+  header h1 span{color:var(--accent)}
+  .badge{background:var(--accent);color:#111;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:800}
+  .btn{border:0;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;color:#111;background:var(--accent);transition:.15s}
+  .btn:hover{transform:translateY(-1px);filter:brightness(1.05)}
+  .btn.ghost{background:#2a3160;color:var(--text);border:1px solid #3d4680}
+  .btn.green{background:var(--green);color:white}
+  .btn.red{background:var(--accent2);color:white}
+  .btn.blue{background:var(--blue);color:white}
+  .btn.small{padding:6px 10px;font-size:13px;border-radius:8px}
+  main{max-width:1200px;margin:0 auto;padding:18px}
+  .grid2{display:grid;grid-template-columns:320px 1fr;gap:16px}
+  @media(max-width:900px){.grid2{grid-template-columns:1fr}}
+  .panel{background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid #343c7a;border-radius:16px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .panel h2{margin:0 0 10px;font-size:16px;text-transform:uppercase;letter-spacing:.8px;color:var(--accent)}
+  input,textarea,select{width:100%;background:#0e1230;border:1px solid #3a4380;color:var(--text);border-radius:10px;padding:9px 10px;font-size:14px;outline:none}
+  input:focus,textarea:focus{border-color:var(--accent)}
+  label{font-size:13px;color:var(--muted);display:block;margin:8px 0 4px}
+  .team-row,.cat-row,.q-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+  .team-row input{flex:1}
+  .score{font-weight:900;font-size:18px;min-width:60px;text-align:center;background:#0e1230;border-radius:8px;padding:6px}
+  /* Board */
+  #board{display:grid;gap:10px;margin-top:12px}
+  .cat-col{background:rgba(255,255,255,.03);border:1px solid #343c7a;border-radius:14px;overflow:hidden}
+  .cat-head{background:linear-gradient(180deg,#3340a0,#252c6b);padding:12px;text-align:center;font-weight:900;text-transform:uppercase;font-size:14px;min-height:56px;display:flex;align-items:center;justify-content:center}
+  .q-cell{margin:10px;border-radius:12px;padding:18px 8px;text-align:center;font-weight:900;font-size:20px;cursor:pointer;background:linear-gradient(180deg,var(--card2),#1a2050);border:1px solid #4550a0;transition:.15s;color:var(--accent)}
+  .q-cell:hover{transform:scale(1.03);background:var(--accent);color:#111}
+  .q-cell.used{background:#12153a;color:#525a8a;text-decoration:line-through;cursor:not-allowed;border-style:dashed;transform:none}
+  .q-cell.buff{background:linear-gradient(180deg,#b45309,#7c2d12);border-color:var(--accent);color:#fff}
+  .q-cell.buff:hover{background:var(--accent);color:#111}
+  /* Scoreboard */
+  #scoreboard{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+  .team-card{flex:1;min-width:140px;background:linear-gradient(180deg,#fff,#e6e9ff);color:#111;border-radius:14px;padding:10px;text-align:center;position:relative;overflow:hidden}
+  .team-card.active{outline:4px solid var(--accent)}
+  .team-card h3{margin:4px 0;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .team-card .pts{font-size:30px;font-weight:900}
+  .team-card .controls{display:flex;gap:6px;justify-content:center;margin-top:8px}
+  .team-card .controls button{border:0;border-radius:8px;padding:6px 10px;font-weight:900;cursor:pointer}
+  /* Modal */
+  #modal{position:fixed;inset:0;background:rgba(3,5,20,.85);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+  #modal.open{display:flex}
+  .modal-box{width:min(900px,100%);max-height:92vh;overflow:auto;background:linear-gradient(180deg,#232a5e,#141842);border:2px solid var(--accent);border-radius:20px;padding:22px;box-shadow:0 20px 80px rgba(0,0,0,.6)}
+  .modal-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  .q-points{background:var(--accent);color:#111;font-weight:900;padding:6px 14px;border-radius:999px}
+  .q-text{font-size:26px;font-weight:800;margin:16px 0;line-height:1.4;text-align:center}
+  .buff-box{background:rgba(255,210,63,.12);border:2px dashed var(--accent);border-radius:14px;padding:14px;margin:12px 0;text-align:center;font-size:19px;font-weight:700}
+  .pts-big{font-size:54px;font-weight:900;color:var(--accent);text-shadow:0 0 26px rgba(255,210,63,.55)}
+  .buff-title{font-size:48px;font-weight:900;letter-spacing:2px;background:linear-gradient(180deg,#ffe27a,#ff9a3f 45%,#ff5a5f);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 12px rgba(255,120,60,.45));animation:buffGlow 1.6s ease-in-out infinite}
+  @keyframes buffGlow{50%{filter:drop-shadow(0 2px 24px rgba(255,180,60,.85))}}
+  .buff-content{margin:14px auto 0;max-width:560px;background:linear-gradient(180deg,rgba(255,210,63,.18),rgba(255,90,95,.12));border:2px dashed var(--accent);border-radius:18px;padding:18px;font-size:22px;font-weight:800;color:#fff;box-shadow:0 8px 30px rgba(255,150,50,.25)}
+  .answers{display:grid;gap:10px;margin:14px 0}
+  @media(min-width:600px){.answers{grid-template-columns:1fr 1fr}}
+  .ans{background:#0e1230;border:2px solid #3d4680;border-radius:14px;padding:14px;font-size:17px;font-weight:700;cursor:pointer;text-align:left;color:var(--text)}
+  .ans .letter{display:inline-flex;width:32px;height:32px;border-radius:50%;background:#2d356b;align-items:center;justify-content:center;margin-right:10px;font-weight:900}
+  .ans.hidden-ans{filter:blur(6px);pointer-events:none;user-select:none}
+  .ans.correct{border-color:var(--green);background:rgba(34,197,94,.2)}
+  .ans.correct .letter{background:var(--green);color:white}
+  .ans.wrong-pick{border-color:var(--accent2);background:rgba(255,90,95,.2)}
+  .ans.dim{opacity:.45}
+  .host-bar{background:rgba(0,0,0,.3);border:1px dashed #5a64b0;border-radius:12px;padding:12px;margin-top:12px}
+  .host-bar h4{margin:0 0 8px;color:var(--accent);font-size:14px;text-transform:uppercase}
+  .flex{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .timer{font-size:34px;font-weight:900;background:#000;border-radius:12px;padding:4px 16px;border:1px solid #444;min-width:90px;text-align:center}
+  .timer.danger{color:var(--accent2);animation:blink 1s infinite}
+  @keyframes blink{50%{opacity:.5}}
+  .tabs{display:flex;gap:8px;margin-bottom:12px}
+  .tabs button{flex:1}
+  .tabs button.on{background:var(--accent)}
+  .hint{color:var(--muted);font-size:13px;line-height:1.5}
+  .editable-q{background:#0e1230;border:1px solid #3a4380;border-radius:12px;padding:10px;margin-bottom:10px}
+  footer{ text-align:center;color:var(--muted);font-size:12px;padding:20px}
+  .win{font-size:42px;text-align:center}
+  .csv-help{background:#0e1230;border:1px solid #3a4380;border-radius:10px;padding:10px;font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.6}
+  .csv-help code{color:var(--accent);font-size:12px}
+  #projectBar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+  #projectBar select{flex:1;min-width:180px;font-weight:800}
+  .q-img{display:block;max-width:100%;max-height:460px;margin:12px auto;border-radius:14px;border:2px solid #4550a0;object-fit:contain;background:#000;cursor:zoom-in}
+  #mImages.multi{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:12px 0}
+  #mImages.multi .q-img{width:100%;height:200px;object-fit:cover;margin:0}
+  #mImages.multi.fit-contain .q-img{object-fit:contain;background:#000}
+  #imgZoom{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:100;cursor:zoom-out;padding:20px}
+  #imgZoom.open{display:flex}
+  #imgZoom img{max-width:96vw;max-height:94vh;object-fit:contain;border-radius:12px}
+  .img-preview{display:block;max-width:100%;max-height:120px;margin-top:8px;border-radius:10px;border:1px solid #4550a0;object-fit:contain;background:#000}
+  .img-row{background:rgba(255,255,255,.03);border:1px dashed #4550a0;border-radius:10px;padding:8px;margin-top:8px}
+</style>
+</head>
+<body>
+<header>
+  <button id="backBtn" class="btn ghost small" onclick="switchTab('setup')" style="display:none" title="Quay lại phần xây dựng trò chơi">← Quay lại</button>
+  <h1>🎮 Nhóm 7 TA3</h1>
+  <span class="badge">TA3</span>
+  <div style="flex:1"></div>
+  <button id="btnPlay" class="btn small" onclick="switchTab('play')">▶️ Vào trận đấu</button>
+  <button class="btn ghost small" onclick="exportJSON()">💾 Xuất</button>
+  <button class="btn blue small" onclick="exportGit()" title="Xuất file game-data.js để đưa lên git, máy khác pull về tự thấy">⬆️ Xuất cho git</button>
+  <button class="btn ghost small" onclick="document.getElementById('importAny').click()">📂 Nhập file</button>
+  <input type="file" id="importFile" accept=".json" style="display:none">
+  <input type="file" id="importCSV" accept=".csv,.txt" style="display:none">
+  <input type="file" id="importAny" accept=".json,.csv,.txt,.tsv,.md,.xlsx,.xls" style="display:none">
+</header>
+
+<main>
+  <div class="panel" id="projectBar">
+    <span style="font-weight:900">📁 Dự án:</span>
+    <select id="projectSelect" onchange="switchProject(this.value)"></select>
+    <button class="btn blue small" onclick="createProject()">+ Mới</button>
+    <button class="btn ghost small" onclick="renameProject()">✏️ Đổi tên</button>
+    <button class="btn ghost small" onclick="duplicateProject()">⧉ Nhân bản</button>
+    <button class="btn red small" onclick="deleteProject()">🗑 Xóa</button>
+  </div>
+  <div id="scoreboard"></div>
+
+  <!-- SETUP -->
+  <div id="view-setup" class="grid2">
+    <div class="panel">
+      <h2>👥 Đội chơi (không giới hạn)</h2>
+      <div id="teamEditor"></div>
+      <button class="btn blue small" onclick="addTeam()">+ Thêm đội</button>
+      <h2 style="margin-top:18px">⚙️ Luật tính điểm</h2>
+      <label><input type="checkbox" id="optPenalty" style="width:auto"> Trừ điểm khi trả lời sai</label>
+      <label>Điểm trừ (mặc định = điểm câu hỏi)</label>
+      <p class="hint">Quản trò bấm + / − hoặc bấm “Đúng / Sai” trong lúc chơi để cộng trừ điểm. Có thể sửa điểm tay bất cứ lúc nào.</p>
+      <button class="btn green" style="width:100%;margin-top:12px" onclick="saveSetup();switchTab('play')">💾 Lưu & Vào trận đấu →</button>
+      <button class="btn ghost small" style="width:100%;margin-top:8px" onclick="loadSample()">📝 Nạp bộ câu hỏi mẫu</button>
+      <h2 style="margin-top:18px">📥 Nạp game từ file</h2>
+      <p class="hint">Hỗ trợ: <b style="color:var(--accent)">JSON • CSV • Excel (.xlsx/.xls) • TXT • TSV • Markdown</b></p>
+      <div class="flex">
+        <select id="csvMode" style="flex:1">
+          <option value="replace">Thay thế toàn bộ game</option>
+          <option value="append">Thêm vào game hiện tại</option>
+        </select>
+      </div>
+      <div class="flex" style="margin-top:8px">
+        <button class="btn blue small" style="flex:1" onclick="document.getElementById('importAny').click()">📥 Chọn file</button>
+      </div>
+      <div class="flex" style="margin-top:8px">
+        <button class="btn ghost small" style="flex:1" onclick="downloadCSVTemplate()">📄 CSV mẫu</button>
+        <button class="btn ghost small" style="flex:1" onclick="downloadTXTTemplate()">📄 TXT mẫu</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>📚 Danh sách câu hỏi (không giới hạn)</h2>
+      <div id="qEditor"></div>
+      <button class="btn blue small" onclick="addQuestion()">+ Thêm câu hỏi</button>
+    </div>
+  </div>
+
+  <!-- PLAY -->
+  <div id="view-play" style="display:none">
+    <div class="panel">
+      <div class="flex">
+        <div style="flex:1"></div>
+        <button class="btn ghost small" onclick="shuffleBoard()">🔀 Trộn câu hỏi</button>
+        <button class="btn ghost small" onclick="switchTab('setup')">✏️ Sửa game</button>
+        <button class="btn red small" onclick="resetGame()">↩️ Reset game</button>
+      </div>
+      <div id="board"></div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL QUESTION -->
+<div id="modal">
+  <div class="modal-box">
+    <div class="modal-top" style="justify-content:center">
+      <span class="q-points" id="mPoints">100 điểm</span>
+    </div>
+    <div id="mReveal" style="text-align:center;padding:26px 10px">
+      <div id="mRevealMain" style="font-size:36px;font-weight:900;color:var(--accent)"></div>
+      <div id="mRevealSub" style="margin-top:8px;color:var(--muted);font-size:16px"></div>
+      <button class="btn small" style="margin-top:16px" onclick="enterQuestion()">Vào câu hỏi →</button>
+    </div>
+    <div id="mImages"></div>
+    <div id="imgFitBar" class="flex" style="display:none;justify-content:center;margin-top:4px">
+      <button id="fitCoverBtn" class="btn ghost small" onclick="setImgFit('cover')">🖼 Khung đều</button>
+      <button id="fitContainBtn" class="btn ghost small" onclick="setImgFit('contain')">📐 Giữ nguyên ảnh</button>
+    </div>
+    <div class="q-text" id="mQuestion"></div>
+    <div id="mBuff" class="buff-box" style="display:none"></div>
+    <div class="answers" id="mAnswers"></div>
+    <div class="flex" style="justify-content:center;margin-top:12px">
+      <button class="btn ghost" onclick="closeModal(false)">Đóng câu hỏi</button>
+    </div>
+  </div>
+</div>
+<div id="imgZoom" onclick="closeZoom()" title="Bấm để thu nhỏ"><img id="imgZoomPic" alt="Ảnh phóng to"></div>
+<script src="game-data.js" onerror="this.remove()"></script>
+<script>
+let state = { teams:[], questions:[], penalty:false };
+let current = null; // {qi}
+let answering = false;
+let boardOrder = []; // thứ tự hiển thị đã trộn, chứa index gốc của questions
+let imgFit = 'cover'; // cách hiện nhiều ảnh: 'cover' (khung đều) | 'contain' (giữ nguyên ảnh)
+try{ imgFit=localStorage.getItem('ta3_imgfit')||'cover'; }catch(e){}
+function setImgFit(mode){ imgFit=mode; try{localStorage.setItem('ta3_imgfit',mode);}catch(e){} applyImgFit(); }
+function applyImgFit(){
+  const mis=document.getElementById('mImages'); if(!mis) return;
+  const isMulti=mis.classList.contains('multi');
+  mis.classList.toggle('fit-contain', imgFit==='contain');
+  const c=document.getElementById('fitCoverBtn'), t=document.getElementById('fitContainBtn');
+  if(c) c.style.outline=(isMulti&&imgFit==='cover')?'2px solid var(--accent)':'';
+  if(t) t.style.outline=(isMulti&&imgFit==='contain')?'2px solid var(--accent)':'';
+}
+
+const LETTERS = ['A','B','C','D','E','F'];
+const LS_KEY = 'trivia_unlimited_v1'; // bản đơn cũ (giữ để migrate)
+const LS_PROJECTS = 'nhom7ta3_projects_v1';
+const LS_ACTIVE = 'nhom7ta3_active_v1';
+let projects = []; // [{id,name,updatedAt,data:{teams,questions,penalty}}]
+let activeId = null;
+let freshSeed = false; // true khi mở lần đầu, chưa có dữ liệu local nào
+
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function blankGameData(){
+  return { penalty:false,
+    teams:[{id:uid(),name:'Đội 1',score:0},{id:uid(),name:'Đội 2',score:0}],
+    questions:[] };
+}
+function getActive(){ return projects.find(p=>p.id===activeId) || projects[0]; }
+function persistProjects(){
+  const a=getActive();
+  if(a){ a.data=JSON.parse(JSON.stringify(state)); a.updatedAt=Date.now(); }
+  try{
+    localStorage.setItem(LS_PROJECTS, JSON.stringify(projects));
+    localStorage.setItem(LS_ACTIVE, activeId);
+  }catch(e){}
+}
+function save(){ persistProjects(); renderScoreboard(); if(document.activeElement!==document.getElementById('projectSelect')) renderProjectBar(); }
+function renderProjectBar(){
+  const sel=document.getElementById('projectSelect'); if(!sel) return;
+  sel.innerHTML='';
+  projects.forEach(p=>{
+    const o=document.createElement('option'); o.value=p.id;
+    const nq=(p.data.questions||[]).length, nt=(p.data.teams||[]).length;
+    o.textContent=`${p.name} (${nq} câu • ${nt} đội)`;
+    if(p.id===activeId) o.selected=true;
+    sel.appendChild(o);
+  });
+}
+function switchProject(id){
+  if(!projects.some(p=>p.id===id)) return;
+  persistProjects();
+  activeId=id;
+  const a=getActive();
+  state=JSON.parse(JSON.stringify(a.data));
+  migrateState();
+  try{localStorage.setItem(LS_ACTIVE, activeId);}catch(e){}
+  document.getElementById('optPenalty').checked=!!state.penalty;
+  boardOrder=[];
+  renderProjectBar(); renderEditors(); renderScoreboard(); renderBoard();
+}
+function createProject(){
+  persistProjects();
+  const n=prompt('Tên dự án mới:', 'Dự án '+(projects.length+1));
+  if(n===null) return;
+  const p={id:uid(),name:(n||'Dự án mới').trim()||'Dự án mới',updatedAt:Date.now(),data:blankGameData()};
+  projects.push(p); activeId=p.id;
+  state=JSON.parse(JSON.stringify(p.data)); migrateState();
+  persistProjects();
+  document.getElementById('optPenalty').checked=!!state.penalty;
+  boardOrder=[];
+  renderProjectBar(); renderEditors(); renderScoreboard(); renderBoard(); switchTab('setup');
+}
+function renameProject(){
+  const a=getActive(); if(!a) return;
+  const n=prompt('Đổi tên dự án:', a.name);
+  if(n===null) return;
+  a.name=(n||a.name).trim()||a.name;
+  persistProjects(); renderProjectBar();
+}
+function duplicateProject(){
+  const a=getActive(); if(!a) return;
+  persistProjects();
+  const copy=JSON.parse(JSON.stringify(a.data));
+  const p={id:uid(),name:a.name+' (copy)',updatedAt:Date.now(),data:copy};
+  projects.push(p); activeId=p.id;
+  state=JSON.parse(JSON.stringify(p.data));
+  persistProjects();
+  boardOrder=[];
+  renderProjectBar(); renderEditors(); renderScoreboard(); renderBoard();
+  alert('Đã nhân bản thành: '+p.name);
+}
+function deleteProject(){
+  if(projects.length<=1){ alert('Phải giữ ít nhất 1 dự án.'); return; }
+  const a=getActive();
+  if(!confirm('Xóa dự án "'+a.name+'"? Không khôi phục được.')) return;
+  projects=projects.filter(p=>p.id!==activeId);
+  activeId=projects[0].id;
+  state=JSON.parse(JSON.stringify(projects[0].data)); migrateState();
+  persistProjects();
+  document.getElementById('optPenalty').checked=!!state.penalty;
+  boardOrder=[];
+  renderProjectBar(); renderEditors(); renderScoreboard(); renderBoard();
+}
+function migrateState(){
+  if(!state.teams) state.teams=[];
+  state.teams.forEach(t=>{ delete t.starAvailable; if(t.score===undefined) t.score=0; });
+  if(state.penalty===undefined) state.penalty=false;
+  // bản cũ dùng categories -> gộp thành danh sách phẳng
+  if(state.categories && !state.questions){
+    const flat=[];
+    state.categories.forEach(c=>{ (c.questions||[]).forEach(q=>flat.push(q)); });
+    state.questions=flat;
+  }
+  if(!state.questions) state.questions=[];
+  state.questions.forEach(q=>{ if(q.points===undefined||q.points===null||isNaN(parseInt(q.points))) q.points=100; q.points=parseInt(q.points)||100; if(q.used===undefined) q.used=false; if(q.buff===undefined) q.buff=false; q.buff=!!q.buff; if(q.buffText===undefined) q.buffText=''; if(!Array.isArray(q.images)) q.images=q.image?[q.image]:[]; delete q.image; });
+  delete state.categories;
+}
+function load(){
+  // 1) thử kho nhiều dự án mới
+  try{
+    const rawP = localStorage.getItem(LS_PROJECTS);
+    const rawA = localStorage.getItem(LS_ACTIVE);
+    if(rawP){
+      projects=JSON.parse(rawP);
+      activeId=rawA;
+      if(!projects.some(p=>p.id===activeId)) activeId=projects[0]&&projects[0].id;
+      if(projects.length && activeId){
+        state=JSON.parse(JSON.stringify(getActive().data));
+        migrateState(); return;
+      }
+    }
+  }catch(e){}
+  // 2) migrate từ bản 1 dự án cũ
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw){
+      const old=JSON.parse(raw);
+      state=old; migrateState();
+      projects=[{id:uid(),name:'Dự án 1',updatedAt:Date.now(),data:JSON.parse(JSON.stringify(state))}];
+      activeId=projects[0].id;
+      persistProjects();
+      return;
+    }
+  }catch(e){}
+  // 3) mới tinh
+  projects=[{id:uid(),name:'Dự án 1',updatedAt:Date.now(),data:null}];
+  activeId=projects[0].id;
+  freshSeed=true;
+  loadSample(false);
+  projects[0].data=JSON.parse(JSON.stringify(state));
+  persistProjects();
+}
+function loadSample(rerender=true){
+  state = {
+    penalty:false,
+    teams:[{id:uid(),name:'Đội 1',score:0},{id:uid(),name:'Đội 2',score:0},{id:uid(),name:'Đội 3',score:0}],
+    questions:[
+      {id:uid(),points:100,question:'Hành tinh nào gần Mặt Trời nhất?',answers:['Sao Thủy','Sao Kim','Trái Đất','Sao Hỏa'],correct:0,used:false},
+      {id:uid(),points:200,question:'Nước sôi ở bao nhiêu độ C?',answers:['90°C','100°C','110°C','120°C'],correct:1,used:false},
+      {id:uid(),points:300,question:'Khí nào chiếm nhiều nhất trong khí quyển?',answers:['Oxy','CO2','Nitơ','Hydro'],correct:2,used:false},
+      {id:uid(),points:100,question:'Thủ đô đầu tiên của Việt Nam là?',answers:['Hoa Lư','Thăng Long','Huế','Cổ Loa'],correct:3,used:false},
+      {id:uid(),points:200,question:'Ai là tác giả Tuyên ngôn Độc lập 1945?',answers:['Hồ Chí Minh','Võ Nguyên Giáp','Phạm Văn Đồng','Trường Chinh'],correct:0,used:false},
+      {id:uid(),points:300,question:'Chiến thắng Điện Biên Phủ năm nào?',answers:['1945','1954','1968','1975'],correct:1,used:false},
+      {id:uid(),points:100,question:'Con gì đập thì sống, không đập thì chết?',answers:['Con tim','Con đập','Con gà','Con số'],correct:0,used:false,buff:true,buffText:'Thưởng nóng do quản trò quyết định'},
+      {id:uid(),points:200,question:'1+1×0 = ?',answers:['0','1','2','3'],correct:1,used:false},
+    ]
+  };
+  document.getElementById('optPenalty').checked = false;
+  if(rerender){ renderEditors(); save(); renderBoard(); }
+}
+
+// ---------- EDITORS ----------
+function addTeam(){ state.teams.push({id:uid(),name:'Đội '+(state.teams.length+1),score:0}); renderEditors(); save(); }
+function delTeam(id){ state.teams = state.teams.filter(t=>t.id!==id); renderEditors(); save(); }
+function addQuestion(){ state.questions.push({id:uid(),points:100,question:'',answers:['','','',''],correct:0,used:false,images:[],buff:false,buffText:''}); renderEditors(); }
+function delQuestion(qi){ state.questions.splice(qi,1); renderEditors(); }
+function addAnswerOpt(qi){
+  const q = state.questions[qi];
+  if(q.answers.length>=6){ alert('Tối đa 6 đáp án'); return; }
+  q.answers.push(''); renderEditors();
+}
+function delAnswerOpt(qi,ai){
+  const q = state.questions[qi];
+  if(q.answers.length<=2){ alert('Cần ít nhất 2 đáp án'); return; }
+  q.answers.splice(ai,1);
+  if(q.correct>=q.answers.length) q.correct=0;
+  renderEditors();
+}
+function handleQuestionImages(files,qi){
+  const q=state.questions[qi]; if(!q||!files||!files.length) return;
+  if(!Array.isArray(q.images)) q.images=[];
+  [...files].forEach(file=>{
+    if(!file.type.startsWith('image/')){ alert('File "'+file.name+'" không phải hình ảnh — bỏ qua.'); return; }
+    if(file.size>5*1024*1024){ alert('Ảnh "'+file.name+'" quá lớn (>5MB) — bỏ qua.'); return; }
+    const reader=new FileReader();
+    reader.onload=()=>{
+      const img=new Image();
+      const done=dataUrl=>{ q.images.push(dataUrl); save(); renderEditors(); };
+      img.onload=()=>{
+        // thu nhỏ còn tối đa 800px để nhẹ bộ nhớ
+        const maxDim=800;
+        let w=img.width,h=img.height;
+        const scale=Math.min(1,maxDim/Math.max(w,h));
+        w=Math.round(w*scale); h=Math.round(h*scale);
+        const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        try{ done(cv.toDataURL('image/jpeg',0.82)); }
+        catch(e){ done(String(reader.result)); }
+      };
+      img.onerror=()=>done(String(reader.result));
+      img.src=String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderEditors(){
+  const te = document.getElementById('teamEditor'); te.innerHTML='';
+  state.teams.forEach(t=>{
+    const div=document.createElement('div'); div.className='team-row';
+    div.innerHTML=`<input value="${escapeHtml(t.name)}" data-tid="${t.id}" class="teamName" placeholder="Tên đội"><div class="score">${t.score}</div><button class="btn red small">X</button>`;
+    div.querySelector('button').onclick=()=>delTeam(t.id);
+    div.querySelector('input').oninput=(e)=>{ t.name=e.target.value; save(); renderScoreboard(); };
+    te.appendChild(div);
+  });
+  const ce=document.getElementById('qEditor'); ce.innerHTML='';
+  if(!state.questions.length){ ce.innerHTML='<p class="hint">Chưa có câu hỏi nào. Bấm + Thêm câu hỏi hoặc nạp file CSV.</p>'; return; }
+  state.questions.forEach((q,qi)=>{
+    const qd=document.createElement('div'); qd.className='editable-q';
+    let ansHtml = q.answers.map((a,ai)=>`<div class="flex"><input type="radio" name="q${qi}" ${ai===q.correct?'checked':''} style="width:auto" title="Đáp án đúng"><span style="font-weight:900">${LETTERS[ai]}</span><input value="${escapeHtml(a)}" placeholder="Đáp án ${LETTERS[ai]}" style="flex:1" class="ansText" data-ai="${ai}"><button class="btn ghost small ansDel">−</button></div>`).join('');
+    qd.innerHTML=`<div class="flex"><span style="font-weight:900;color:var(--accent)">Câu ${qi+1}</span><input type="number" value="${q.points||100}" min="0" step="10" style="max-width:100px;${q.buff?'display:none':''}" class="qPoints" title="Điểm cho câu này — quản trò tự nhập" ${q.buff?'disabled':''}><input value="${escapeHtml(q.question)}" placeholder="Nội dung câu hỏi..." style="flex:1" class="qText"><button class="btn red small">Xóa</button></div>`
+      +`<label style="display:flex;gap:6px;align-items:center;margin:6px 0 0;font-size:13px;color:var(--muted);cursor:pointer"><input type="checkbox" class="qBuff" ${q.buff?'checked':''} style="width:auto;transform:scale(1.2)"> ★ Câu BUFF (câu đặc biệt — thay cho chọn điểm)</label>`
+      +`${q.buff?`<input value="${escapeHtml(q.buffText||'')}" placeholder="Nội dung buff... (VD: Nhân đôi điểm)" class="qBuffText" style="margin-top:6px">`:''}`
+      +`<div class="img-row"><label style="margin:0 0 4px">🖼 Hình minh họa (tùy chọn, nhiều ảnh):</label><div class="flex"><input type="file" accept="image/*" multiple class="imgFile" style="flex:1"><input placeholder="dán link ảnh http... rồi Enter" class="imgUrl" style="flex:2"><button class="btn blue small imgAdd">+ Thêm</button></div>`
+      +`<div class="flex" style="margin-top:8px">${(q.images||[]).map((src,ii)=>`<div style="position:relative;display:inline-block"><img src="${escapeHtml(src)}" class="img-preview" style="margin:0;max-height:90px"><button class="btn red small imgDelOne" data-ii="${ii}" style="position:absolute;top:2px;right:2px;padding:2px 8px" title="Xóa ảnh này">X</button></div>`).join('')||'<span class="hint">Chưa có ảnh nào.</span>'}</div></div>`
+      +`<label>Các đáp án trắc nghiệm — tick radio = đáp án đúng:</label>${ansHtml}<button class="btn ghost small ansAdd" style="margin-top:6px">+ Thêm đáp án</button>`;
+    qd.querySelector('.qText').oninput=e=>{ q.question=e.target.value; };
+    qd.querySelector('.qPoints').oninput=e=>{ q.points=parseInt(e.target.value)||0; save(); };
+    qd.querySelector('.qBuff').onchange=e=>{ q.buff=e.target.checked; save(); renderEditors(); };
+    const bt=qd.querySelector('.qBuffText');
+    if(bt) bt.oninput=e=>{ q.buffText=e.target.value; save(); };
+    if(!Array.isArray(q.images)) q.images=[];
+    qd.querySelector('.imgFile').onchange=e=>{ if(e.target.files.length) handleQuestionImages(e.target.files,qi); e.target.value=''; };
+    const urlInp=qd.querySelector('.imgUrl');
+    const addUrl=()=>{ const v=urlInp.value.trim(); if(!v) return; q.images.push(v); urlInp.value=''; save(); renderEditors(); };
+    urlInp.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); addUrl(); } };
+    qd.querySelector('.imgAdd').onclick=addUrl;
+    qd.querySelectorAll('.imgDelOne').forEach(b=>{ b.onclick=()=>{ q.images.splice(parseInt(b.dataset.ii),1); save(); renderEditors(); }; });
+    q.answers.forEach((a,ai)=>{
+      const radio = qd.querySelectorAll('input[type=radio]')[ai];
+      radio.onchange=()=>q.correct=ai;
+    });
+    qd.querySelectorAll('.ansText').forEach(inp=>{ inp.oninput=e=>{ q.answers[parseInt(e.target.dataset.ai)]=e.target.value; }; });
+    qd.querySelector('.ansAdd').onclick=()=>addAnswerOpt(qi);
+    qd.querySelectorAll('.ansDel').forEach((b,ai)=>{ b.onclick=()=>delAnswerOpt(qi,ai); });
+    qd.querySelector('.btn.red.small').onclick=()=>delQuestion(qi);
+    ce.appendChild(qd);
+  });
+}
+
+function saveSetup(){
+  state.penalty = document.getElementById('optPenalty').checked;
+  save(); renderBoard();
+}
+function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ---------- BOARD & SCORE ----------
+function renderScoreboard(){
+  const sb=document.getElementById('scoreboard'); sb.innerHTML='';
+  if(!state.teams.length){ sb.innerHTML='<span class="hint">Chưa có đội nào — vào Soạn câu hỏi để thêm.</span>'; return; }
+  const sorted=[...state.teams].sort((a,b)=>b.score-a.score);
+  state.teams.forEach(t=>{
+    const d=document.createElement('div'); d.className='team-card'; d.id='team-'+t.id;
+    const isTop = sorted[0] && sorted[0].id===t.id && t.score>0;
+    d.innerHTML=`<div>${isTop?'👑':''}</div><h3>${escapeHtml(t.name)}</h3><div class="pts" title="Bấm vào điểm để sửa trực tiếp">${t.score}</div>`;
+    // bấm vào điểm để sửa trực tiếp
+    const ptsEl=d.querySelector('.pts');
+    ptsEl.style.cursor='pointer';
+    ptsEl.onclick=()=>{
+      if(ptsEl.querySelector('input')) return;
+      const inp=document.createElement('input');
+      inp.type='number'; inp.value=t.score;
+      inp.style.cssText='width:100px;font-size:24px;font-weight:900;text-align:center;border-radius:8px;border:2px solid var(--accent)';
+      inp.onclick=e=>e.stopPropagation();
+      ptsEl.textContent=''; ptsEl.appendChild(inp);
+      inp.focus(); inp.select();
+      let done=false;
+      const commit=ok=>{
+        if(done) return; done=true;
+        if(ok){ const v=parseInt(inp.value); t.score=isNaN(v)?0:v; save(); }
+        else renderScoreboard();
+      };
+      inp.onkeydown=e=>{ if(e.key==='Enter') commit(true); else if(e.key==='Escape') commit(false); };
+      inp.onblur=()=>commit(true);
+    };
+    sb.appendChild(d);
+  });
+}
+
+function ensureBoardOrder(){
+  const n=state.questions.length;
+  const ok=boardOrder.length===n && boardOrder.every(i=>Number.isInteger(i)&&i>=0&&i<n) && new Set(boardOrder).size===n;
+  if(!ok) boardOrder=Array.from({length:n},(_,i)=>i);
+}
+function shuffleBoard(){
+  ensureBoardOrder();
+  // Fisher-Yates
+  for(let i=boardOrder.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [boardOrder[i],boardOrder[j]]=[boardOrder[j],boardOrder[i]];
+  }
+  renderBoard();
+}
+function boardLabel(qi){
+  const pos=boardOrder.indexOf(qi);
+  return pos>=0?pos+1:qi+1;
+}
+
+function renderBoard(){
+  const b=document.getElementById('board');
+  b.style.gridTemplateColumns=`repeat(auto-fill,minmax(110px,1fr))`;
+  b.innerHTML='';
+  if(!state.questions.length){ b.innerHTML='<p class="hint">Chưa có câu hỏi nào.</p>'; return; }
+  ensureBoardOrder();
+  boardOrder.forEach((qi,pos)=>{
+    const q=state.questions[qi];
+    if(!q) return;
+    const cell=document.createElement('div'); cell.className='q-cell'+(q.used?' used':'');
+    // Không lộ trước câu nào buff, câu nào tính điểm — mọi ô hiện giống nhau
+    cell.innerHTML=`<div>Câu ${pos+1}</div>`;
+    if(!q.used) cell.onclick=()=>openQuestion(qi);
+    b.appendChild(cell);
+  });
+}
+
+function switchTab(t){
+  const isPlay=t==='play';
+  document.getElementById('view-setup').style.display = isPlay?'none':'grid';
+  document.getElementById('view-play').style.display = isPlay?'block':'none';
+  // Ẩn toàn bộ liên quan đến dự án khi vào trận đấu
+  const pb=document.getElementById('projectBar');
+  if(pb) pb.style.display=isPlay?'none':'flex';
+  const bb=document.getElementById('backBtn');
+  if(bb) bb.style.display=isPlay?'':'none';
+  const bp=document.getElementById('btnPlay');
+  if(bp) bp.style.display=isPlay?'none':'';
+  if(isPlay){ saveSetup(); shuffleBoard(); }
+}
+
+// ---------- QUESTION MODAL ----------
+function enterQuestion(){
+  if(!current) return;
+  const q=state.questions[current.qi];
+  document.getElementById('mReveal').style.display='none';
+  document.getElementById('mPoints').style.display='';
+  document.getElementById('mQuestion').style.display='';
+  document.getElementById('mAnswers').style.display='';
+  const mis=document.getElementById('mImages'); mis.innerHTML='';
+  mis.classList.toggle('multi',(q.images||[]).length>1);
+  (q.images||[]).forEach(src=>{
+    const im=document.createElement('img');
+    im.className='q-img'; im.src=src; im.alt='Hình minh họa câu hỏi'; im.title='Bấm vào ảnh để phóng to';
+    im.onclick=()=>openZoom(src);
+    mis.appendChild(im);
+  });
+  mis.style.display=(q.images&&q.images.length)?'':'none';
+  document.getElementById('imgFitBar').style.display=(q.images&&q.images.length>1)?'flex':'none';
+  applyImgFit();
+  const mb=document.getElementById('mBuff');
+  if(q.buff){ mb.style.display='block'; mb.innerHTML='🎁 <b>Nội dung buff:</b> '+escapeHtml(q.buffText||'Câu đặc biệt'); }
+  else mb.style.display='none';
+}
+function openQuestion(qi){
+  current={qi}; answering=false;
+  const q=state.questions[qi];
+  if(q.points===undefined||q.points===null) q.points=100;
+  if(q.buffText===undefined) q.buffText='';
+  if(q.buff) document.getElementById('mPoints').textContent='★ BUFF — Câu '+boardLabel(qi);
+  else document.getElementById('mPoints').textContent=(q.points||100)+' điểm — Câu '+boardLabel(qi);
+  document.getElementById('mQuestion').textContent=q.question||'(chưa nhập câu hỏi)';
+  const box=document.getElementById('mAnswers'); box.innerHTML='';
+  q.answers.forEach((a,ai)=>{
+    const btn=document.createElement('button'); btn.className='ans'; btn.dataset.ai=ai;
+    btn.innerHTML=`<span class="letter">${LETTERS[ai]}</span> ${escapeHtml(a||'(trống)')}`;
+    btn.onclick=()=>pickAnswer(ai);
+    box.appendChild(btn);
+  });
+  // Trang trung gian: chỉ hiện điểm / nội dung buff + nút vào câu hỏi
+  const main=document.getElementById('mRevealMain');
+  const sub=document.getElementById('mRevealSub');
+  document.getElementById('mPoints').style.display='none';
+  if(q.buff){ main.innerHTML='<div class="buff-title">★ BUFF ★</div>'; sub.innerHTML='<div class="buff-content">🎁 '+escapeHtml(q.buffText||'Câu đặc biệt')+'</div>'; }
+  else { main.innerHTML='<div class="pts-big">'+(q.points||100)+' điểm</div>'; sub.textContent='Câu '+boardLabel(qi); }
+  document.getElementById('mReveal').style.display='block';
+  document.getElementById('mQuestion').style.display='none';
+  document.getElementById('mAnswers').style.display='none';
+  document.getElementById('mImages').style.display='none';
+  document.getElementById('imgFitBar').style.display='none';
+  document.getElementById('mBuff').style.display='none';
+  document.getElementById('modal').classList.add('open');
+}
+function pickAnswer(ai){
+  if(!current || answering) return;
+  const q=state.questions[current.qi];
+  answering=true;
+  // khóa các đáp án + hiện đúng/sai ngay (xanh = đúng, đỏ = đã chọn sai)
+  document.querySelectorAll('#mAnswers .ans').forEach(el=>{
+    el.style.pointerEvents='none';
+    const idx=parseInt(el.dataset.ai);
+    el.classList.remove('wrong-pick'); el.classList.remove('dim');
+    if(idx===q.correct) el.classList.add('correct');
+    else if(idx===ai) el.classList.add('wrong-pick');
+    else el.classList.add('dim');
+  });
+  // đánh dấu đã dùng ngay (đóng câu hỏi sau khi xem đáp án đúng/sai)
+  q.used=true;
+  save(); renderBoard();
+}
+function closeModal(notUsed, skipSave){
+  if(current && !notUsed){
+    state.questions[current.qi].used=true;
+  }
+  document.getElementById('modal').classList.remove('open');
+  if(!skipSave){ save(); renderBoard(); }
+  current=null; answering=false;
+  checkWinner();
+}
+function openZoom(src){ if(!src) return; document.getElementById('imgZoomPic').src=src; document.getElementById('imgZoom').classList.add('open'); }
+function closeZoom(){ document.getElementById('imgZoom').classList.remove('open'); }
+function checkWinner(){
+  const totalQ = state.questions.length;
+  const usedQ = state.questions.filter(x=>x.used).length;
+  if(totalQ>0 && usedQ===totalQ){
+    const top=[...state.teams].sort((a,b)=>b.score-a.score)[0];
+    if(top) setTimeout(()=>alert('🏆 Kết thúc! Đội thắng: '+top.name+' — '+top.score+' điểm!'),300);
+  }
+}
+
+// ---------- MISC ----------
+function resetGame(){ if(!confirm('Reset toàn bộ game? Điểm về 0 và mở lại tất cả câu hỏi.')) return; state.questions.forEach(q=>q.used=false); state.teams.forEach(t=>{ t.score=0; }); save(); renderEditors(); shuffleBoard(); }
+function resetScores(){ if(!confirm('Reset toàn bộ điểm về 0?')) return; state.teams.forEach(t=>{ t.score=0; }); save(); renderEditors(); }
+
+// ---------- CSV ----------
+function stripAccents(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(); }
+function parseCSV(text){
+  text=(text||'').replace(/^\uFEFF/,'').replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  const lines=text.split('\n').filter(l=>l.trim()!=='');
+  if(!lines.length) return [];
+  // đoán delimiter: , ; tab |
+  const cands=[',',';','\t','|'];
+  let delim=',',best=-1;
+  cands.forEach(d=>{ const n=(lines[0].split(d).length-1); if(n>best){best=n;delim=d;} });
+  const rows=[]; let row=[],cur='',inQ=false;
+  const full=lines.join('\n');
+  for(let i=0;i<full.length;i++){
+    const ch=full[i],nx=full[i+1];
+    if(inQ){
+      if(ch==='"'){ if(nx==='"'){cur+='"';i++;} else inQ=false; }
+      else cur+=ch;
+    } else {
+      if(ch==='"') inQ=true;
+      else if(ch===delim){ row.push(cur.trim()); cur=''; }
+      else if(ch==='\n'){ row.push(cur.trim()); rows.push(row); row=[]; cur=''; }
+      else cur+=ch;
+    }
+  }
+  row.push(cur.trim()); rows.push(row);
+  return rows.filter(r=>r.some(c=>c!==''));
+}
+function normKey(s){ return stripAccents(s).replace(/[\s_]+/g,''); }
+function buildGameFromCSV(rows){
+  if(!rows.length) throw new Error('empty');
+  const header=rows[0].map(normKey);
+  const isHeader = header.some(h=>['category','chuyenmuc','chuyenmucauhoi','points','diem','sodiem','question','cauhoi','noidung','correct','dapan','dapandung','dandung','answer','dapan','image','img','hinh','anh','linkanh','hinhanh','buff'].some(k=>h.includes(k)));
+  let idx={pts:-1,q:-1,corr:-1,img:-1,buff:-1,ans:[]};
+  let dataRows=rows;
+  if(isHeader){
+    dataRows=rows.slice(1);
+    header.forEach((h,i)=>{
+      if(['points','diem','sodiem'].some(k=>h.includes(k))) idx.pts=i;
+      else if(['question','cauhoi','noidungcauhoi','cau'].some(k=>h.includes(k)) && idx.q===-1) idx.q=i;
+      else if(['correct','dapan','dapandung','dandung','dapanchinhxac','traloidung'].some(k=>h.includes(k))) idx.corr=i;
+      else if(['image','img','hinhanh','linkanh','hinh','anh'].some(k=>h.includes(k))) idx.img=i;
+      else if(h.includes('buff')) idx.buff=i;
+      else if(h.includes('answer')||h.includes('dapan')||h.includes('luachon')||h.includes('option')||/^[a-f]$/.test(h)||/^cot/.test(h)) idx.ans.push(i);
+      // cột Category / ChuyenMuc cũ: tự bỏ qua
+    });
+    if(!idx.ans.length){
+      header.forEach((h,i)=>{ if(/^(a|b|c|d|e|f|[1-6])$/.test(h)) idx.ans.push(i); });
+    }
+  } else {
+    // không header: Points,Question,Correct?,Answers... (tương thích cũ có Category ở đầu)
+    // thử đoán: nếu có 7+ cột và cột đầu không phải số thì coi cột đầu là category cũ -> bỏ qua
+    let start=0;
+    if(rows[0].length>=7 && !/^\d+/.test((rows[0][0]||'').trim()) && /^\d+/.test((rows[0][1]||'').trim())) start=1;
+    idx={pts:start,q:start+1,corr:start+2,ans:[]};
+    const maybeCorr=(rows[0][start+2]||'').trim().toUpperCase();
+    if(/^[A-F1-6]$/.test(maybeCorr)){ for(let i=start+3;i<rows[0].length;i++) idx.ans.push(i); }
+    else { idx.corr=-1; for(let i=start+2;i<rows[0].length;i++) idx.ans.push(i); }
+  }
+  if(idx.q===-1) idx.q=1;
+  if(idx.pts===-1) idx.pts=0;
+  if(!idx.ans.length){
+    const maxCols=Math.max(...dataRows.map(r=>r.length));
+    for(let i=idx.q+1;i<maxCols;i++){ if(i!==idx.corr && i!==idx.img && i!==idx.buff) idx.ans.push(i); }
+  }
+  const questions=[];
+  let count=0, skipped=0;
+  dataRows.forEach(r=>{
+    const pts=parseInt((r[idx.pts]||'100').replace(/[^0-9]/g,''))||100;
+    const qtxt=(r[idx.q]||'').trim();
+    let answers=idx.ans.map(i=>(r[i]||'').trim()).filter(a=>a!=='');
+    let corrRaw=idx.corr>=0?(r[idx.corr]||'').trim():'';
+    const imgList=idx.img>=0?(r[idx.img]||'').split(';').map(s=>s.trim()).filter(Boolean):[];
+    const buffRaw=idx.buff>=0?(r[idx.buff]||'').trim():'';
+    let isBuff=false, buffText='';
+    if(buffRaw){ if(/^(1|true|x|co|yes|y)$/i.test(buffRaw)) isBuff=true; else { isBuff=true; buffText=buffRaw; } }
+    if(!qtxt || answers.length<2){ skipped++; return; }
+    if(answers.length>6) answers=answers.slice(0,6);
+    let correct=0;
+    const up=corrRaw.toUpperCase();
+    if(/^[A-F]$/.test(up)) correct=up.charCodeAt(0)-65;
+    else if(/^[1-6]$/.test(up)) correct=parseInt(up)-1;
+    else if(corrRaw){
+      const f=answers.findIndex(a=>stripAccents(a)===stripAccents(corrRaw));
+      if(f>=0) correct=f; else correct=0;
+    }
+    if(correct<0||correct>=answers.length) correct=0;
+    questions.push({id:uid(),points:pts,question:qtxt,answers,correct,used:false,images:imgList,buff:isBuff,buffText});
+    count++;
+  });
+  if(!count) throw new Error('no valid rows (cần ít nhất Câu hỏi + 2 đáp án)');
+  return {questions,count,skipped};
+}
+function applyImportedQuestions(questions,count,skipped,sourceLabel){
+  const mode=(document.getElementById('csvMode')||{}).value||'replace';
+  if(mode==='replace'){
+    if(!confirm(`[${sourceLabel}] Tìm thấy ${count} câu hỏi hợp lệ${skipped?` (${skipped} dòng bị bỏ qua)`:''}. Thay thế TOÀN BỘ câu hỏi hiện tại?`)) return;
+    state.questions=questions;
+  } else {
+    state.questions.push(...questions);
+    alert(`[${sourceLabel}] Đã thêm ${count} câu hỏi${skipped?` (${skipped} dòng bỏ qua)`:''} vào game!`);
+  }
+  if(!state.teams.length) state.teams=[{id:uid(),name:'Đội 1',score:0}];
+  migrateState(); saveSetup(); renderEditors(); renderBoard();
+  switchTab('play');
+}
+function importJSONText(text,sourceLabel){
+  const data=JSON.parse(text);
+  // game đã xuất ra: {teams, questions} hoặc bản cũ {teams, categories}
+  if(data && (data.questions || data.categories)){
+    const tmp={teams:data.teams||state.teams, questions:[], penalty:!!data.penalty};
+    if(data.questions) tmp.questions=data.questions;
+    else (data.categories||[]).forEach(c=>{(c.questions||[]).forEach(q=>tmp.questions.push(q));});
+    if(!tmp.questions.length) throw new Error('file JSON không có câu hỏi');
+    tmp.questions.forEach(q=>{ if(!q.id) q.id=uid(); q.used=false; if(!q.answers) q.answers=[]; });
+    state=tmp; migrateState();
+    document.getElementById('optPenalty').checked=!!state.penalty;
+    renderEditors(); save(); renderBoard(); switchTab('play');
+    return;
+  }
+  // JSON dạng mảng câu hỏi: [{question, answers, correct, points, image}]
+  if(Array.isArray(data)){
+    const questions=[]; let skipped=0;
+    data.forEach(o=>{
+      let ans=o.answers||o.options||o.dapan||[];
+      if(!Array.isArray(ans)) ans=[];
+      ans=ans.map(a=>String(a).trim()).filter(Boolean);
+      const qtxt=String(o.question||o.cauhoi||o.q||'').trim();
+      if(!qtxt || ans.length<2){ skipped++; return; }
+      let correct=0;
+      const c=o.correct??o.dapanDung??o.answer??'A';
+      if(typeof c==='number') correct=c-1;
+      else if(/^[A-Fa-f]$/.test(String(c).trim())) correct=String(c).trim().toUpperCase().charCodeAt(0)-65;
+      else { const f=ans.findIndex(a=>stripAccents(a)===stripAccents(String(c))); if(f>=0) correct=f; }
+      if(correct<0||correct>=ans.length) correct=0;
+      let jb=false, jt=String(o.buffText||'');
+      if(typeof o.buff==='string'){
+        const bs=o.buff.trim();
+        if(bs){ if(/^(1|true|x|co|yes|y)$/i.test(bs)) jb=true; else { jb=true; if(!jt) jt=bs; } }
+      } else jb=!!o.buff;
+      const imgs=Array.isArray(o.images)?o.images.map(a=>String(a).trim()).filter(Boolean):String(o.image||o.img||o.hinh||'').split(';').map(s=>s.trim()).filter(Boolean);
+      questions.push({id:uid(),points:parseInt(o.points||o.diem)||100||100,question:qtxt,answers:ans.slice(0,6),correct,used:false,images:imgs,buff:jb,buffText:jt});
+    });
+    if(!questions.length) throw new Error('file JSON không có câu hỏi hợp lệ');
+    applyImportedQuestions(questions,questions.length,skipped,sourceLabel);
+    return;
+  }
+  throw new Error('định dạng JSON không nhận dạng được');
+}
+// TXT tự do: mỗi câu cách nhau 1 dòng trống
+// VD:
+// Cau: Thu do cua VN? / Diem: 100 / Buff: x
+// A. Ha Noi / B. Hue / C. Da Nang / D. Sai Gon
+// Dap an: A
+function parseTXTBlocks(text){
+  const blocks=(text||'').replace(/^\uFEFF/,'').split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean);
+  const questions=[]; let skipped=0;
+  blocks.forEach(b=>{
+    const lines=b.split('\n').map(l=>l.trim()).filter(Boolean);
+    if(!lines.length) return;
+    let qtxt='', pts=100, corrRaw='', buffRaw='', answers=[], imgs=[];
+    lines.forEach(l=>{
+      let m=l.match(/^(cau( hoi)?|question|q)\s*[:\-–]\s*(.+)/i);
+      if(m){ qtxt=m[3].trim(); return; }
+      m=l.match(/^(diem|points?|diem so)\s*[:\-–]\s*(.+)/i);
+      if(m){ pts=parseInt(m[2].replace(/[^0-9]/g,''))||100; return; }
+      m=l.match(/^(buff)\s*[:\-–]\s*(.+)/i);
+      if(m){ buffRaw=m[2].trim(); return; }
+      m=l.match(/^(hinh( anh)?|image|img|anh|link anh)\s*[:\-–]\s*(.+)/i);
+      if(m){ const v=m[3].trim(); if(v) imgs.push(v); return; }
+      m=l.match(/^(dap an|dapandung|correct|answer|tra loi dung)\s*[:\-–]\s*(.+)/i);
+      if(m){ corrRaw=m[2].trim(); return; }
+      // các dòng đáp án: "A. ...", "A) ...", "A: ...", "A|B|C" hoặc "A, B, C"
+      if(/^[A-Fa-f]\s*[\.\)\:\|\-–]\s*.+/.test(l)){
+        answers.push(l.replace(/^[A-Fa-f]\s*[\.\)\:\|\-–]\s*/,'').trim());
+        return;
+      }
+      if(l.includes('|') && answers.length===0 && !/^(cau|diem|dap an)/i.test(l)){
+        const parts=l.split('|').map(s=>s.trim()).filter(Boolean).map(s=>s.replace(/^[A-Fa-f]\s*[\.\)\:\-–]\s*/,'').trim());
+        if(parts.length>=2){ answers.push(...parts); return; }
+      }
+      // dòng đầu không nhãn = câu hỏi
+      if(!qtxt && answers.length===0){ qtxt=l.replace(/^(cau\s*\d*\s*[:\-–]?\s*)/i,'').trim(); }
+      else if(l.length>1) answers.push(l.replace(/^[A-Fa-f0-9]\s*[\.\)\:\-–]\s*/,'').trim());
+    });
+    answers=answers.filter(a=>a!=='');
+    if(!qtxt || answers.length<2){ skipped++; return; }
+    if(answers.length>6) answers=answers.slice(0,6);
+    let correct=0;
+    const up=(corrRaw||'').toUpperCase().replace(/[\.\)]/g,'').trim();
+    if(/^[A-F]$/.test(up)) correct=up.charCodeAt(0)-65;
+    else if(/^[1-6]$/.test(up)) correct=parseInt(up)-1;
+    else if(corrRaw){
+      const f=answers.findIndex(a=>stripAccents(a)===stripAccents(corrRaw));
+      if(f>=0) correct=f;
+    }
+    if(correct<0||correct>=answers.length) correct=0;
+    const braw=(buffRaw||'').trim();
+    const tbBuff=braw!==''; const tbText=/^(1|true|x|co|yes|y)$/i.test(braw)?'':braw;
+    questions.push({id:uid(),points:pts,question:qtxt,answers,correct,used:false,images:imgs,buff:tbBuff,buffText:tbText});
+  });
+  if(!questions.length) throw new Error('không tìm thấy câu hỏi (mỗi câu cách nhau 1 dòng trống, cần câu hỏi + ít nhất 2 đáp án)');
+  return {questions,count:questions.length,skipped};
+}
+function handleCSVFile(file){
+  handleAnyFile(file);
+}
+function handleAnyFile(file){
+  const name=(file.name||'').toLowerCase();
+  const sourceLabel=file.name||'file';
+  if(/\.xlsx?$/.test(name)){
+    // Excel cần thư viện SheetJS (online lần đầu)
+    if(typeof XLSX==='undefined'){ alert('Để nhập file Excel cần mạng lần đầu để tải thư viện. Hãy mở mạng rồi thử lại, hoặc lưu Excel thành CSV UTF-8 rồi nạp.'); return; }
+    const reader=new FileReader();
+    reader.onload=()=>{
+      try{
+        const wb=XLSX.read(reader.result,{type:'array'});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''}).map(r=>r.map(c=>String(c).trim()));
+        const {questions,count,skipped}=buildGameFromCSV(rows.filter(r=>r.some(c=>c!=='')));
+        applyImportedQuestions(questions,count,skipped,sourceLabel);
+      }catch(err){ alert('File Excel không hợp lệ: '+err.message); }
+    };
+    reader.readAsArrayBuffer(file);
+    return;
+  }
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const text=String(reader.result||'');
+      // 1) thử JSON trước
+      if(/\.json$/.test(name) || text.trim().startsWith('{') || text.trim().startsWith('[')){
+        try{ importJSONText(text,sourceLabel); return; }
+        catch(e){ if(/\.json$/.test(name)) throw e; /* txt/csv thì thử tiếp */ }
+      }
+      // 2) Markdown bảng: dòng có | -> chuyển thành rows
+      if(/\.md$/.test(name) && text.includes('|')){
+        const rows=text.split('\n').filter(l=>l.includes('|')).map(l=>l.split('|').slice(1,-1).map(c=>c.trim().replace(/^\*\*|\*\*$/g,'')));
+        const clean=rows.filter(r=>r.length>=3 && !/^\s*-+\s*$/.test(r[0]));
+        if(clean.length>=2){
+          const {questions,count,skipped}=buildGameFromCSV(clean);
+          applyImportedQuestions(questions,count,skipped,sourceLabel);
+          return;
+        }
+      }
+      // 3) CSV/TSV: có delimiter và nhiều cột
+      const rows=parseCSV(text);
+      const looksTable=rows.length && Math.max(...rows.map(r=>r.length))>=3;
+      if(looksTable && (/\.(csv|tsv)$/.test(name) || rows[0].length>=0)){
+        try{
+          const {questions,count,skipped}=buildGameFromCSV(rows);
+          applyImportedQuestions(questions,count,skipped,sourceLabel);
+          return;
+        }catch(e){
+          // nếu là txt tự do thì rơi xuống parseTXTBlocks
+          if(/\.(csv|tsv)$/.test(name)) throw e;
+        }
+      }
+      // 4) TXT tự do / Markdown thường
+      const {questions,count,skipped}=parseTXTBlocks(text);
+      applyImportedQuestions(questions,count,skipped,sourceLabel);
+    }catch(err){ alert('File không hợp lệ: '+err.message+'\nHãy bấm “CSV mẫu” hoặc “TXT mẫu” để xem định dạng đúng.'); }
+  };
+  reader.readAsText(file,'UTF-8');
+}
+function downloadTXTTemplate(){
+  const txt='Cau: Hanh tinh nao gan Mat Troi nhat?\nDiem: 100\nA. Sao Thuy\nB. Sao Kim\nC. Trai Dat\nD. Sao Hoa\nDap an: A\n\nCau: Chien thang Dien Bien Phu nam nao?\nDiem: 200\nA. 1945\nB. 1954\nC. 1968\nD. 1975\nDap an: B\n\nCau: 1+1x0 = ?\nDiem: 300\nA. 0\nB. 1\nC. 2\nD. 3\nDap an: 2\n';
+  const blob=new Blob(['\uFEFF'+txt],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='mau-game-trivia.txt'; a.click();
+}
+function downloadCSVTemplate(){
+  const csv='Points,Question,AnswerA,AnswerB,AnswerC,AnswerD,Correct,Image\n100,"Hanh tinh nao gan Mat Troi nhat?","Sao Thuy","Sao Kim","Trai Dat","Sao Hoa",A,\n200,"Chien thang Dien Bien Phu nam nao?","1945","1954","1968","1975",B,\n300,"1+1x0 = ?","0","1","2","3",2,\n';
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='mau-game-trivia.csv'; a.click();
+}
+function exportJSON(){
+  saveSetup();
+  const a=getActive();
+  const out=Object.assign({project:a?a.name:'game'}, state);
+  const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
+  const link=document.createElement('a'); link.href=URL.createObjectURL(blob);
+  const safe=(a?a.name:'trivia-game').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-')||'trivia-game';
+  link.download=safe+'.json'; link.click();
+}
+// ---------- CHIA SẺ QUA GIT (game-data.js) ----------
+const LS_GIT_APPLIED = 'ta3_git_applied_at';
+function gitDataToState(){
+  const g=(typeof GAME_DATA!=='undefined')?GAME_DATA:null;
+  if(!g||!Array.isArray(g.questions)||!g.questions.length) return null;
+  const teams=(Array.isArray(g.teams)&&g.teams.length?g.teams:[{name:'Đội 1'},{name:'Đội 2'}])
+    .map((t,i)=>({id:uid(),name:String((t&&t.name)||('Đội '+(i+1))),score:0}));
+  const questions=g.questions.map(q=>{
+    const ans=Array.isArray(q.answers)?q.answers.map(a=>String(a)):Array.isArray(q.options)?q.options.map(a=>String(a)):[];
+    let correct=parseInt(q.correct);
+    if(isNaN(correct)) correct=0;
+    if(correct<0) correct=0;
+    if(ans.length&&correct>=ans.length) correct=0;
+    const imgs=Array.isArray(q.images)?q.images.map(a=>String(a).trim()).filter(Boolean)
+      :String(q.image||q.img||'').split(';').map(s=>s.trim()).filter(Boolean);
+    return {id:uid(),points:parseInt(q.points)||100,question:String(q.question||''),
+      answers:ans.slice(0,6),correct,used:false,images:imgs,buff:!!q.buff,buffText:String(q.buffText||'')};
+  }).filter(q=>q.question&&q.answers.length>=2);
+  if(!questions.length) return null;
+  return {teams,questions,penalty:!!g.penalty,_gitStamp:g.updatedAt||0};
+}
+function applyGitData(auto){
+  const st=gitDataToState(); if(!st) return false;
+  const stamp=st._gitStamp;
+  let applied=0;
+  try{ applied=parseInt(localStorage.getItem(LS_GIT_APPLIED))||0; }catch(e){}
+  if(auto && stamp<=applied && !freshSeed) return false;
+  const a=getActive();
+  if(a&&a.data&&a.data._gitStamp===stamp){
+    try{localStorage.setItem(LS_GIT_APPLIED,String(stamp));}catch(e){}
+    return false;
+  }
+  if(!freshSeed && projects.length && (state.questions||[]).length){
+    if(!confirm('Phát hiện bản game mới từ git (cập nhật lúc '+new Date(stamp).toLocaleString('vi-VN')+'). Nạp bản mới? Dự án hiện tại sẽ bị thay thế.')) return false;
+  }
+  state=JSON.parse(JSON.stringify(st)); migrateState();
+  state._gitStamp=stamp;
+  projects=[{id:uid(),name:'Dự án 1',updatedAt:Date.now(),data:JSON.parse(JSON.stringify(state))}];
+  activeId=projects[0].id;
+  persistProjects();
+  try{localStorage.setItem(LS_GIT_APPLIED,String(stamp));}catch(e){}
+  document.getElementById('optPenalty').checked=!!state.penalty;
+  renderProjectBar(); renderEditors(); renderScoreboard(); renderBoard();
+  return true;
+}
+function exportGit(){
+  saveSetup();
+  const out={updatedAt:Date.now(),penalty:!!state.penalty,
+    teams:state.teams.map(t=>({name:t.name})),
+    questions:state.questions.map(q=>({points:q.points||100,question:q.question||'',
+      answers:q.answers||[],correct:q.correct||0,images:q.images||[],
+      buff:!!q.buff,buffText:q.buffText||''}))};
+  const js='// Game data chia sẻ qua git — tạo bằng nút "Xuất cho git". Không sửa tay.\n'
+    +'// Cách dùng: chép file này vào cùng thư mục index.html rồi git push. Máy khác pull về, mở app là tự thấy.\n'
+    +'window.GAME_DATA = '+JSON.stringify(out,null,2).replace(/</g,'\\u003c')+';\n';
+  const blob=new Blob([js],{type:'text/javascript;charset=utf-8'});
+  const link=document.createElement('a'); link.href=URL.createObjectURL(blob);
+  link.download='game-data.js'; link.click();
+  alert('Đã xuất game-data.js (điểm đội đã reset về 0).\nChép đè file này vào thư mục repo rồi git push để chia sẻ.');
+}
+document.getElementById('importFile').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  handleAnyFile(f); e.target.value='';
+});
+document.getElementById('importCSV').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  handleAnyFile(f); e.target.value='';
+});
+document.getElementById('importAny').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  handleAnyFile(f); e.target.value='';
+});
+document.addEventListener('keydown',e=>{ if(e.key!=='Escape') return; const z=document.getElementById('imgZoom'); if(z&&z.classList.contains('open')) closeZoom(); else if(current) closeModal(true); });
+
+// init
+load(); migrateState(); persistProjects();
+applyGitData(true); // tự nạp bản mới từ git (game-data.js) nếu có
+document.getElementById('optPenalty').checked=!!state.penalty;
+renderProjectBar(); renderEditors(); renderScoreboard(); renderBoard();
+</script>
+</body>
+</html>
